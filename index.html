@@ -8,11 +8,13 @@
   :root{
     --ink:#141a2b; --ink2:#1d2438; --panel:#232c44;
     --paper:#f6f2e9; --line:#38425f;
-    --b0:#ff6b6b; /* だれが */
-    --b1:#ffb14d; /* する・です */
-    --b2:#37d6c0; /* だれ・なに */
-    --b3:#a98cff; /* どこ */
-    --b4:#5aa9ff; /* いつ */
+    /* 意味順（MAP Grammar）公式配色に準拠 */
+    --b0:#ce1e4e; /* だれが   */
+    --b1:#45a9d6; /* する・です */
+    --b2:#3e9e3e; /* だれ     */
+    --b3:#7e3193; /* なに     */
+    --b4:#e1912f; /* どこ     */
+    --b5:#2e74c0; /* いつ     */
     --good:#7ee787; --bad:#ff7a8a;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
@@ -21,82 +23,73 @@
     background:radial-gradient(120% 90% at 50% -10%, #202a45 0%, var(--ink) 55%);
     color:var(--paper);
     font-family:"Hiragino Maru Gothic ProN","Hiragino Kaku Gothic ProN","Yu Gothic",system-ui,sans-serif;
-    display:flex; justify-content:center; align-items:stretch;
-    overflow:hidden;
+    display:flex; justify-content:center; align-items:stretch; overflow:hidden;
   }
-  #wrap{
-    width:100%; max-width:520px; height:100dvh; display:flex; flex-direction:column;
-    padding:10px 12px 14px; gap:10px;
-  }
+  #wrap{width:100%; max-width:560px; height:100dvh; display:flex; flex-direction:column;
+        padding:10px 10px 14px; gap:10px;}
 
-  /* ---- HUD ---- */
-  #hud{display:flex; align-items:center; gap:10px; font-weight:700;}
+  /* HUD */
+  #hud{display:flex; align-items:center; gap:8px; font-weight:700;}
   .pill{background:var(--panel); border:1px solid var(--line); border-radius:999px;
-        padding:6px 12px; font-size:13px; letter-spacing:.02em; display:flex; gap:6px; align-items:center;}
-  .pill small{opacity:.6; font-weight:600;}
+        padding:6px 12px; font-size:13px; display:flex; gap:6px; align-items:center;}
+  .pill small{opacity:.55; font-weight:600;}
+  #combo{color:var(--good); min-width:44px; text-align:right; font-variant-numeric:tabular-nums;
+         opacity:0; transition:opacity .2s;} #combo.on{opacity:1;}
   #lives{margin-left:auto; letter-spacing:2px; font-size:17px;}
-  #combo{color:var(--good); min-width:52px; text-align:right; font-variant-numeric:tabular-nums;
-         opacity:0; transition:opacity .2s;}
-  #combo.on{opacity:1;}
 
-  /* ---- goal ---- */
+  /* goal */
   #goal{background:var(--ink2); border:1px solid var(--line); border-radius:14px;
         padding:10px 14px; text-align:center;}
-  #goal .lbl{font-size:11px; opacity:.55; letter-spacing:.14em; font-weight:700;}
+  #goal .lbl{font-size:11px; opacity:.5; letter-spacing:.14em; font-weight:700;}
   #goal .jp{font-size:16px; font-weight:700; margin-top:2px;}
 
-  /* ---- play field ---- */
+  /* field */
   #field{position:relative; flex:1; min-height:0; overflow:hidden; border-radius:14px;
          background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.18));
          border:1px solid var(--line);}
-  .card{
-    position:absolute; left:50%; top:0; transform:translateX(-50%);
-    background:var(--paper); color:#222; font-weight:800; font-size:19px;
-    padding:12px 18px; border-radius:12px; white-space:nowrap;
-    box-shadow:0 8px 0 rgba(0,0,0,.22), 0 12px 26px rgba(0,0,0,.35);
-    will-change:top;
-  }
+  .card{position:absolute; left:50%; top:0; transform:translateX(-50%);
+        background:var(--paper); color:#222; font-weight:800; font-size:19px;
+        padding:12px 18px; border-radius:12px; white-space:nowrap;
+        box-shadow:0 8px 0 rgba(0,0,0,.22), 0 12px 26px rgba(0,0,0,.35); will-change:top;}
   .card.wrong{animation:shake .3s;}
   @keyframes shake{0%,100%{margin-left:0}25%{margin-left:-9px}75%{margin-left:9px}}
   .card.ghost{transition:top .18s cubic-bezier(.5,0,.7,1), left .18s, transform .18s, opacity .18s;}
 
-  /* ---- boxes ---- */
-  #boxes{display:flex; gap:6px;}
-  .box{
-    flex:1; min-width:0; border-radius:12px; border:2px solid var(--bx);
-    background:color-mix(in srgb, var(--bx) 14%, var(--ink2));
-    padding:7px 5px 9px; text-align:center; cursor:pointer; position:relative;
-    transition:transform .08s, box-shadow .12s; user-select:none;
-  }
+  /* boxes */
+  #boxes{display:flex; gap:5px;}
+  .box{flex:1; min-width:0; border-radius:12px; border:1px solid var(--line);
+       background:var(--ink2); padding:8px 3px 9px; text-align:center; cursor:pointer;
+       position:relative; transition:transform .08s, background .12s, border-color .12s; user-select:none;}
   .box:active{transform:translateY(2px);}
-  .box .name{font-size:12px; font-weight:800; color:var(--bx); letter-spacing:.02em;}
-  .box .key{position:absolute; top:4px; left:6px; font-size:10px; opacity:.4; font-weight:700;}
-  .box .slot{margin-top:6px; min-height:30px; display:flex; align-items:center; justify-content:center;
-             font-size:14px; font-weight:800; color:var(--paper); line-height:1.15;}
-  .box .slot:empty::after{content:"·····"; color:var(--bx); opacity:.35; letter-spacing:2px;}
-  .box.filled{background:color-mix(in srgb, var(--bx) 32%, var(--ink2));}
+  .box .name{display:inline-block; background:var(--bx); color:#fff;
+             font-size:10.5px; font-weight:800; padding:3px 8px; border-radius:999px;
+             white-space:nowrap; box-shadow:0 2px 0 rgba(0,0,0,.28);}
+  .box .key{position:absolute; top:4px; left:5px; font-size:10px; opacity:.35; font-weight:700;}
+  .box .slot{margin-top:7px; min-height:30px; display:flex; align-items:center; justify-content:center;
+             font-size:14px; font-weight:800; color:var(--paper); line-height:1.15; padding:0 2px;}
+  .box .slot:empty::after{content:"·····"; color:var(--bx); opacity:.4; letter-spacing:1px;}
+  .box.filled{background:color-mix(in srgb, var(--bx) 22%, var(--ink2)); border-color:var(--bx);}
   .box.flash{animation:pop .28s;}
   @keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.09)}100%{transform:scale(1)}}
   .box.hide{display:none;}
 
-  /* ---- overlays ---- */
+  /* overlays */
   .screen{position:absolute; inset:0; z-index:20; display:flex; flex-direction:column;
           justify-content:center; align-items:center; gap:16px; text-align:center;
           background:rgba(12,16,28,.86); backdrop-filter:blur(3px); padding:24px;}
   .screen.hide{display:none;}
-  .screen h1{margin:0; font-size:30px; letter-spacing:.02em;}
-  .screen h1 span{color:var(--b2);}
-  .screen p{margin:0; opacity:.8; font-size:14px; line-height:1.7; max-width:340px;}
-  .btn{background:var(--b2); color:#06231f; border:none; font-weight:800; font-size:17px;
-       padding:13px 30px; border-radius:999px; cursor:pointer; box-shadow:0 6px 0 #1c9686;}
-  .btn:active{transform:translateY(3px); box-shadow:0 3px 0 #1c9686;}
-  .mini{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:2px;}
-  .chip{font-size:12px; font-weight:800; padding:5px 10px; border-radius:999px; color:#111;}
+  .screen h1{margin:0; font-size:30px;} .screen h1 span{color:var(--b1);}
+  .screen p{margin:0; opacity:.82; font-size:14px; line-height:1.7; max-width:360px;}
+  .btn{background:var(--b1); color:#04283a; border:none; font-weight:800; font-size:17px;
+       padding:13px 30px; border-radius:999px; cursor:pointer; box-shadow:0 6px 0 #2b7ba0;}
+  .btn:active{transform:translateY(3px); box-shadow:0 3px 0 #2b7ba0;}
+  .mini{display:flex; gap:6px; flex-wrap:wrap; justify-content:center;}
+  .chip{font-size:12px; font-weight:800; padding:5px 11px; border-radius:999px; color:#fff;}
   #toast{position:absolute; top:14px; left:50%; transform:translateX(-50%);
-         font-weight:800; font-size:22px; opacity:0; pointer-events:none; z-index:15;
-         text-shadow:0 2px 8px rgba(0,0,0,.5);}
-  #toast.show{animation:rise .8s;}
-  @keyframes rise{0%{opacity:0; transform:translate(-50%,6px)}20%{opacity:1}100%{opacity:0; transform:translate(-50%,-22px)}}
+         font-weight:800; font-size:20px; opacity:0; pointer-events:none; z-index:15;
+         text-shadow:0 2px 8px rgba(0,0,0,.5); white-space:nowrap;}
+  #toast.show{animation:rise .9s;}
+  @keyframes rise{0%{opacity:0; transform:translate(-50%,6px)}18%{opacity:1}100%{opacity:0; transform:translate(-50%,-22px)}}
 </style>
 </head>
 <body>
@@ -118,13 +111,14 @@
 
     <div class="screen" id="start">
       <h1>意味順<span>ドロップ</span></h1>
-      <p>落ちてくる語句を、正しい意味順の箱にタップで振り分けよう。<br>パソコンなら数字キー <b>1〜5</b> でもOK。</p>
+      <p>落ちてくる語句を、正しい意味順の箱にタップで振り分けよう。<br>パソコンなら数字キー <b>1〜6</b> でもOK。</p>
       <div class="mini">
         <span class="chip" style="background:var(--b0)">だれが</span>
         <span class="chip" style="background:var(--b1)">する・です</span>
-        <span class="chip" style="background:var(--b2)">だれ・なに</span>
-        <span class="chip" style="background:var(--b3)">どこ</span>
-        <span class="chip" style="background:var(--b4)">いつ</span>
+        <span class="chip" style="background:var(--b2)">だれ</span>
+        <span class="chip" style="background:var(--b3)">なに</span>
+        <span class="chip" style="background:var(--b4)">どこ</span>
+        <span class="chip" style="background:var(--b5)">いつ</span>
       </div>
       <button class="btn" id="startBtn">スタート</button>
     </div>
@@ -140,41 +134,51 @@
 </div>
 
 <script>
+// 0 だれが / 1 する・です / 2 だれ / 3 なに / 4 どこ / 5 いつ
 const BOXES = [
   {name:"だれが",   v:"--b0"},
   {name:"する・です", v:"--b1"},
-  {name:"だれ・なに", v:"--b2"},
-  {name:"どこ",     v:"--b3"},
-  {name:"いつ",     v:"--b4"},
+  {name:"だれ",     v:"--b2"},
+  {name:"なに",     v:"--b3"},
+  {name:"どこ",     v:"--b4"},
+  {name:"いつ",     v:"--b5"},
 ];
 
-// box index: 0 だれが / 1 する・です / 2 だれ・なに / 3 どこ / 4 いつ
 const BANK = [
-  {jp:"私は英語を勉強します。",       c:[["I",0],["study",1],["English",2]]},
-  {jp:"彼は本を読みます。",           c:[["He",0],["reads",1],["a book",2]]},
-  {jp:"私たちはサッカーをします。",     c:[["We",0],["play",1],["soccer",2]]},
-  {jp:"彼女は音楽が好きです。",         c:[["She",0],["likes",1],["music",2]]},
-  {jp:"私はコーヒーを飲みます。",       c:[["I",0],["drink",1],["coffee",2]]},
-  {jp:"その犬はボールが好きです。",     c:[["The dog",0],["likes",1],["the ball",2]]},
+  // SVO（だれが・する・なに）
+  {jp:"私は英語を勉強します。",       c:[["I",0],["study",1],["English",3]]},
+  {jp:"彼は本を読みます。",           c:[["He",0],["reads",1],["a book",3]]},
+  {jp:"私たちはサッカーをします。",     c:[["We",0],["play",1],["soccer",3]]},
+  {jp:"彼女は音楽が好きです。",         c:[["She",0],["likes",1],["music",3]]},
+  {jp:"私はコーヒーを飲みます。",       c:[["I",0],["drink",1],["coffee",3]]},
+  {jp:"その犬はボールが好きです。",     c:[["The dog",0],["likes",1],["the ball",3]]},
 
-  {jp:"私は公園で走ります。",           c:[["I",0],["run",1],["in the park",3]]},
-  {jp:"彼らは学校で勉強します。",       c:[["They",0],["study",1],["at school",3]]},
-  {jp:"私は図書館で本を読みます。",     c:[["I",0],["read",1],["a book",2],["in the library",3]]},
-  {jp:"彼女は台所で料理をします。",     c:[["She",0],["cooks",1],["in the kitchen",3]]},
+  // ＋どこ
+  {jp:"私は公園で走ります。",           c:[["I",0],["run",1],["in the park",4]]},
+  {jp:"彼らは学校で勉強します。",       c:[["They",0],["study",1],["at school",4]]},
+  {jp:"私は図書館で本を読みます。",     c:[["I",0],["read",1],["a book",3],["in the library",4]]},
+  {jp:"彼女は台所で料理をします。",     c:[["She",0],["cooks",1],["in the kitchen",4]]},
 
-  {jp:"私は毎朝走ります。",             c:[["I",0],["run",1],["every morning",4]]},
-  {jp:"彼は日曜日に野球をします。",     c:[["He",0],["plays",1],["baseball",2],["on Sunday",4]]},
-  {jp:"私は毎晩公園を歩きます。",       c:[["I",0],["walk",1],["in the park",3],["every evening",4]]},
-  {jp:"私たちは夏に海へ行きます。",     c:[["We",0],["go",1],["to the sea",3],["in summer",4]]},
-  {jp:"彼女は放課後図書館で勉強します。",c:[["She",0],["studies",1],["in the library",3],["after school",4]]},
+  // ＋だれ（授与文 SVOO）
+  {jp:"私は彼女に手紙を書きます。",     c:[["I",0],["write",1],["her",2],["a letter",3]]},
+  {jp:"彼は私にプレゼントをくれます。", c:[["He",0],["gives",1],["me",2],["a present",3]]},
+  {jp:"母は私に朝食を作ります。",       c:[["My mother",0],["makes",1],["me",2],["breakfast",3]]},
+  {jp:"先生は私たちに物語を読みます。", c:[["The teacher",0],["reads",1],["us",2],["a story",3]]},
+
+  // ＋いつ（フル）
+  {jp:"私は毎朝走ります。",             c:[["I",0],["run",1],["every morning",5]]},
+  {jp:"彼は日曜日に野球をします。",     c:[["He",0],["plays",1],["baseball",3],["on Sunday",5]]},
+  {jp:"私は毎晩公園を歩きます。",       c:[["I",0],["walk",1],["in the park",4],["every evening",5]]},
+  {jp:"私たちは夏に海へ行きます。",     c:[["We",0],["go",1],["to the sea",4],["in summer",5]]},
+  {jp:"彼らは毎日学校で私に英語を教えます。",
+                                       c:[["They",0],["teach",1],["me",2],["English",3],["at school",4],["every day",5]]},
 ];
 
 const $ = s => document.querySelector(s);
 const field = $("#field"), boxesEl = $("#boxes"), toast = $("#toast");
 let boxEls = [];
-
-// state
 let lives, score, level, cleared, combo, active, queue, placed, current, running, raf, lastT;
+let card=null, cardY=0, cardH=54, speed=0;
 const shuffle = a => { for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];} return a; };
 
 function buildBoxes(){
@@ -188,169 +192,118 @@ function buildBoxes(){
     return el;
   });
 }
-
 function activeBoxes(){
-  if(level<=1) return [0,1,2];
-  if(level===2) return [0,1,2,3];
-  return [0,1,2,3,4];
+  if(level<=1) return [0,1,3];        // だれが・する・なに
+  if(level===2) return [0,1,3,4];     // ＋どこ
+  if(level===3) return [0,1,2,3,4];   // ＋だれ（SVOO）
+  return [0,1,2,3,4,5];               // ＋いつ
 }
 function refreshBoxes(){
   active = activeBoxes();
   boxEls.forEach((el,i)=> el.classList.toggle("hide", !active.includes(i)));
 }
-function fallDuration(){ return Math.max(1900, 4600 - (level-1)*550); } // ms top→bottom
+function fallDuration(){ return Math.max(1900, 4600 - (level-1)*500); }
 
 function setHUD(){
-  $("#lv").textContent = level;
-  $("#score").textContent = score;
-  $("#lives").textContent = "♥".repeat(lives) + "<span style='opacity:.2'>♥</span>".repeat(Math.max(0,3-lives));
+  $("#lv").textContent = level; $("#score").textContent = score;
   $("#lives").innerHTML = "♥".repeat(lives).replace(/♥/g,"<span style='color:var(--bad)'>♥</span>")
                         + "<span style='opacity:.18'>♥</span>".repeat(Math.max(0,3-lives));
-  const c = $("#combo");
-  if(combo>=2){ c.textContent = "×"+combo; c.classList.add("on"); } else c.classList.remove("on");
+  const c=$("#combo");
+  if(combo>=2){ c.textContent="×"+combo; c.classList.add("on"); } else c.classList.remove("on");
 }
-
 function showToast(t,color){ toast.textContent=t; toast.style.color=color||"var(--paper)";
   toast.classList.remove("show"); void toast.offsetWidth; toast.classList.add("show"); }
 
-// --- sentence flow ---
 function nextSentence(){
   const pool = BANK.filter(s => s.c.every(ch => active.includes(ch[1])));
   current = pool[Math.random()*pool.length|0];
   $("#jp").textContent = current.jp;
   boxEls.forEach(el=>{ el.querySelector(".slot").textContent=""; el.classList.remove("filled"); });
   placed = new Set();
-  queue = shuffle(current.c.map((_,i)=>i)); // indices into current.c
+  queue = shuffle(current.c.map((_,i)=>i));
   spawn();
 }
-
-let card=null, cardY=0, cardH=54, speed=0;
 function spawn(){
   if(queue.length===0){ sentenceComplete(); return; }
-  const idx = queue[0];
-  const [text] = current.c[idx];
-  card = document.createElement("div");
-  card.className = "card"; card.textContent = text;
+  const [text] = current.c[queue[0]];
+  card = document.createElement("div"); card.className="card"; card.textContent=text;
   field.appendChild(card);
-  cardH = card.offsetHeight;
-  cardY = -cardH;
-  const dist = field.clientHeight - cardH;
-  speed = dist / fallDuration(); // px per ms
-  card.style.top = cardY+"px";
-  lastT = performance.now();
+  cardH = card.offsetHeight; cardY = -cardH;
+  speed = (field.clientHeight - cardH) / fallDuration();
+  card.style.top = cardY+"px"; lastT = performance.now();
 }
-
 function loop(t){
-  if(!running){ return; }
+  if(!running) return;
   if(card){
-    const dt = t - lastT; lastT = t;
-    cardY += speed*dt;
+    const dt=t-lastT; lastT=t; cardY += speed*dt;
     const limit = field.clientHeight - cardH;
-    if(cardY >= limit){
-      cardY = limit; card.style.top = cardY+"px";
-      missCurrent(); // hit the floor unsorted
-    } else {
-      card.style.top = cardY+"px";
-    }
+    if(cardY>=limit){ cardY=limit; card.style.top=cardY+"px"; missCurrent(); }
+    else card.style.top = cardY+"px";
   }
   raf = requestAnimationFrame(loop);
 }
-
 function tryPlace(boxIdx){
   if(!running || !card || card.classList.contains("ghost")) return;
   const cIdx = queue[0];
   const [text, correct] = current.c[cIdx];
   if(boxIdx === correct){
-    // fly into box
     const bRect = boxEls[boxIdx].getBoundingClientRect();
     const fRect = field.getBoundingClientRect();
     card.classList.add("ghost");
     card.style.left = (bRect.left - fRect.left + bRect.width/2)+"px";
     card.style.top  = (bRect.top - fRect.top - cardH*0.4)+"px";
-    card.style.transform = "translateX(-50%) scale(.7)";
-    card.style.opacity = "0";
-    const finished = card;
-    setTimeout(()=>{ finished.remove(); }, 180);
-    const slot = boxEls[boxIdx].querySelector(".slot");
-    slot.textContent = text;
+    card.style.transform = "translateX(-50%) scale(.7)"; card.style.opacity="0";
+    const gone=card; setTimeout(()=>gone.remove(),180);
+    const slot = boxEls[boxIdx].querySelector(".slot"); slot.textContent=text;
     boxEls[boxIdx].classList.add("filled","flash");
     setTimeout(()=>boxEls[boxIdx].classList.remove("flash"),300);
-    card = null;
-    placed.add(cIdx); queue.shift();
-    combo++; const gain = 10 + Math.max(0,(combo-1))*2;
-    score += gain; setHUD();
-    beep(660,0.06);
-    spawn();
+    card=null; placed.add(cIdx); queue.shift();
+    combo++; score += 10 + Math.max(0,combo-1)*2; setHUD(); beep(660,0.06); spawn();
   } else {
-    // wrong box
-    card.classList.add("wrong");
-    setTimeout(()=>card&&card.classList.remove("wrong"),300);
+    card.classList.add("wrong"); setTimeout(()=>card&&card.classList.remove("wrong"),300);
     penalty("箱ちがい");
   }
 }
-
-function missCurrent(){ penalty("時間切れ"); if(card){ card.remove(); card=null; }
-  // re-queue at back so the sentence can still be completed
-  const dead = queue.shift(); queue.push(dead); spawn(); }
-
-function penalty(reason){
-  combo = 0; lives--; setHUD(); beep(150,0.12);
-  showToast(reason, "var(--bad)");
-  if(lives<=0){ gameOver(); }
-}
-
+function missCurrent(){ penalty("時間切れ"); if(card){card.remove();card=null;}
+  const dead=queue.shift(); queue.push(dead); spawn(); }
+function penalty(reason){ combo=0; lives--; setHUD(); beep(150,0.12);
+  showToast(reason,"var(--bad)"); if(lives<=0) gameOver(); }
 function sentenceComplete(){
   cleared++;
   const sentence = current.c.map(ch=>ch[0]).join(" ");
-  score += 50; combo = 0; setHUD();
-  showToast("+50  "+sentence, "var(--good)"); beep(880,0.08);
-  speak(sentence);
-  // level up every 3 sentences
-  if(cleared % 3 === 0){ level++; refreshBoxes(); showToast("LEVEL "+level+"!","var(--b2)"); }
-  setTimeout(()=>{ if(running) nextSentence(); }, 1400);
+  score+=50; combo=0; setHUD();
+  showToast("+50  "+sentence,"var(--good)"); beep(880,0.08); speak(sentence);
+  if(cleared%3===0){ level++; refreshBoxes(); showToast("LEVEL "+level+"!","var(--b1)"); }
+  setTimeout(()=>{ if(running) nextSentence(); },1400);
 }
 
-// --- audio ---
 let actx;
-function beep(freq,dur){
-  try{ actx = actx || new (window.AudioContext||window.webkitAudioContext)();
-    const o=actx.createOscillator(), g=actx.createGain();
-    o.frequency.value=freq; o.type="triangle"; o.connect(g); g.connect(actx.destination);
-    g.gain.setValueAtTime(0.12,actx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001,actx.currentTime+dur);
-    o.start(); o.stop(actx.currentTime+dur);
-  }catch(e){}
-}
-function speak(text){
-  try{ const u=new SpeechSynthesisUtterance(text); u.lang="en-US"; u.rate=.95;
-    speechSynthesis.cancel(); speechSynthesis.speak(u);
-  }catch(e){}
-}
+function beep(freq,dur){ try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+  const o=actx.createOscillator(), g=actx.createGain(); o.frequency.value=freq; o.type="triangle";
+  o.connect(g); g.connect(actx.destination); g.gain.setValueAtTime(0.12,actx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,actx.currentTime+dur); o.start(); o.stop(actx.currentTime+dur);}catch(e){} }
+function speak(text){ try{ const u=new SpeechSynthesisUtterance(text); u.lang="en-US"; u.rate=.95;
+  speechSynthesis.cancel(); speechSynthesis.speak(u);}catch(e){} }
 
-// --- game control ---
 function startGame(){
   lives=3; score=0; level=1; cleared=0; combo=0; running=true;
   $("#start").classList.add("hide"); $("#over").classList.add("hide");
   refreshBoxes(); setHUD(); nextSentence();
   cancelAnimationFrame(raf); raf=requestAnimationFrame(loop);
 }
-function gameOver(){
-  running=false; if(card){card.remove(); card=null;}
-  cancelAnimationFrame(raf);
-  $("#overText").innerHTML = `スコア <b style="color:var(--b2);font-size:22px">${score}</b><br>クリアした文：${cleared}　到達レベル：${level}`;
-  $("#over").classList.remove("hide");
-}
+function gameOver(){ running=false; if(card){card.remove();card=null;} cancelAnimationFrame(raf);
+  $("#overText").innerHTML = `スコア <b style="color:var(--b1);font-size:22px">${score}</b><br>クリアした文：${cleared}　到達レベル：${level}`;
+  $("#over").classList.remove("hide"); }
 
 document.addEventListener("keydown", e=>{
   if(!running) return;
-  const n = parseInt(e.key,10);
-  if(n>=1 && n<=5 && active.includes(n-1)) tryPlace(n-1);
+  const n=parseInt(e.key,10);
+  if(n>=1 && n<=6 && active.includes(n-1)) tryPlace(n-1);
 });
 $("#startBtn").addEventListener("click", startGame);
 $("#againBtn").addEventListener("click", startGame);
 
-buildBoxes(); refreshBoxes=refreshBoxes; // build once
-active=[0,1,2];
+buildBoxes(); active=[0,1,3];
 </script>
 </body>
 </html>
